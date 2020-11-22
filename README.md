@@ -1,8 +1,8 @@
-Práctica Triggers
+# Práctica Triggers
 
-Alumno: Francisco Javier Arocas Herrera
+## Alumno: Francisco Javier Arocas Herrera
 
-Alu: Alu0100906813
+## Alu: Alu0100906813
 
 ---
 
@@ -50,7 +50,28 @@ Posteriormanete, con la variable **new**, tenemos acceso a las variables nuevas 
 
 2. ***Crear un trigger permita verificar que las personas en el Municipio del catastro no pueden vivir en dos viviendas diferentes.***
 
+Para poder ver si dos viviendas son iguales:
 
+```sql
+DELIMITER $$
+
+CREATE TRIGGER checkStock
+	BEFORE INSERT
+	ON Vivienda FOR EACH ROW
+BEGIN
+	DECLARE viviendas INT;
+    DECLARE errorMes VARCHAR(128);
+	SET @viviendas = (SELECT COUNT(Persona) FROM Vivienda WHERE DNI = new.DNI && Zona = new.Zona);
+	IF viviendas > 0 THEN
+		SET errorMes = CONCAT('Error, ya existe esa persona viviendo en otra vivienda de la misma zona'); 
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = errorMes;
+	END IF;
+END$$
+
+DELIMITER ;
+```
+
+Comprobamos antes de insertar en viviendas. Lo que haremos será buscar viviendas en las que viva la persona la cual va a insertarse una nueva vivienda (DNI), pero comprobando también su zona. Este valor se cuenta. Si es mayor a 0, significa que la persona ya tiene una vivienda en la misma zona, por lo que lanzamos una excepción, personalizando el código de error.
 
 ---
 
